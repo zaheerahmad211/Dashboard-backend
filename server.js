@@ -29,19 +29,19 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests from Postman or server-to-server requests
-      if (!origin) {
+      // Allow requests from Postman, server-to-server, or any vercel.app domain
+      if (!origin || origin.includes('localhost') || origin.endsWith('vercel.app')) {
         return callback(null, true);
       }
-
+      
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
       console.log('Blocked CORS origin:', origin);
-      return callback(new Error('Not allowed by CORS'));
+      // Return false instead of Error to avoid 500 Server Error
+      return callback(null, false);
     },
-
     credentials: true
   })
 );
