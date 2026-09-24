@@ -4,6 +4,7 @@ const User = require('../models/User');
 const protect = async (req, res, next) => {
   let token;
 
+  // Check Authorization header
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
@@ -15,28 +16,45 @@ const protect = async (req, res, next) => {
       // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      // Get user from the token
+      // Find user
       req.user = await User.findById(decoded.id).select('-password');
 
+      // User no longer exists
+      if (!req.user) {
+        return res.status(401).json({
+          message: 'User not found',
+        });
+      }
+
       next();
+      return;
     } catch (error) {
-      console.error(error);
-      res.status(401).json({ message: 'Not authorized, token failed' });
+      console.error('Authentication error:', error.message);
+
+      return res.status(401).json({
+        message: 'Not authorized, token failed',
+      });
     }
   }
 
-  if (!token) {
-    res.status(401).json({ message: 'Not authorized, no token' });
-  }
+  return res.status(401).json({
+    message: 'Not authorized, no token',
+  });
 };
 
-// Optional admin middleware
+// Admin middleware
 const admin = (req, res, next) => {
   if (req.user && req.user.role === 'admin') {
     next();
-  } else {
-    res.status(403).json({ message: 'Not authorized as an admin' });
+    return;
   }
+
+  return res.status(403).json({
+    message: 'Not authorized as an admin',
+  });
 };
 
-module.exports = { protect, admin };
+module.exports = {
+  protect,
+  admin,
+};
