@@ -1,4 +1,6 @@
+
 require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -9,35 +11,97 @@ connectDB();
 
 const app = express();
 
-// Middleware
-app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
-  credentials: true
-}));
+// ===============================
+// CORS CONFIGURATION
+// ===============================
+
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+
+  // Vercel Frontend URLs
+  'https://dashboard-frontend-5e6m8lw5d-zaheers-projects-7e59edf9.vercel.app',
+  'https://dashboard-frontend-n9vas6ifq-zaheers-projects-7e59edf9.vercel.app',
+  'https://dashboard-frontend-7om0249eu-zaheers-projects-7e59edf9.vercel.app',
+  'https://dashboard-frontend-psi-neon.vercel.app'
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests from Postman or server-to-server requests
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      console.log('Blocked CORS origin:', origin);
+      return callback(new Error('Not allowed by CORS'));
+    },
+
+    credentials: true
+  })
+);
+
+// ===============================
+// BODY PARSER
+// ===============================
+
 app.use(express.json());
 
-// Serve uploaded files statically
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// ===============================
+// UPLOADS
+// ===============================
 
-// Routes
+app.use(
+  '/uploads',
+  express.static(path.join(__dirname, 'uploads'))
+);
+
+// ===============================
+// ROUTES
+// ===============================
+
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/activity', require('./routes/activityRoutes'));
 app.use('/api/settings', require('./routes/settingsRoutes'));
 
-// Error handling middleware
+// ===============================
+// ERROR HANDLING
+// ===============================
+
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  if (err.message === 'Only image files are allowed (jpeg, jpg, png, gif, webp)') {
-    return res.status(400).json({ message: err.message });
+
+  if (
+    err.message ===
+    'Only image files are allowed (jpeg, jpg, png, gif, webp)'
+  ) {
+    return res.status(400).json({
+      message: err.message
+    });
   }
-  res.status(500).json({ message: 'Server Error' });
+
+  res.status(500).json({
+    message: 'Server Error'
+  });
 });
 
-// Basic route for '/' to prevent 404
+// ===============================
+// ROOT ROUTE
+// ===============================
+
 app.get('/', (req, res) => {
   res.send('Dashboard Backend API is running...');
 });
+
+// ===============================
+// SERVER
+// ===============================
 
 const PORT = process.env.PORT || 5000;
 
@@ -47,4 +111,5 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
+// Export for Vercel
 module.exports = app;
