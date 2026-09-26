@@ -62,8 +62,7 @@ const registerUser = async (req, res) => {
     console.error('REGISTER ERROR:', error);
 
     res.status(500).json({
-      message: 'Server error',
-      error: process.env.NODE_ENV === 'production'
+      message: error.message || 'Server error',      error: process.env.NODE_ENV === 'production'
         ? undefined
         : error.message,
     });
@@ -151,8 +150,7 @@ const loginUser = async (req, res) => {
     console.error('LOGIN ERROR:', error);
 
     return res.status(500).json({
-      message: 'Server error',
-      error: process.env.NODE_ENV === 'production'
+      message: error.message || 'Server error',      error: process.env.NODE_ENV === 'production'
         ? undefined
         : error.message,
     });
@@ -178,8 +176,7 @@ const getMe = async (req, res) => {
     console.error('GET ME ERROR:', error);
 
     res.status(500).json({
-      message: 'Server error',
-    });
+      message: error.message || 'Server error',    });
   }
 };
 
@@ -242,8 +239,7 @@ const updateProfile = async (req, res) => {
     console.error('UPDATE PROFILE ERROR:', error);
 
     res.status(500).json({
-      message: 'Server error',
-    });
+      message: error.message || 'Server error',    });
   }
 };
 
@@ -299,8 +295,7 @@ const changePassword = async (req, res) => {
     console.error('CHANGE PASSWORD ERROR:', error);
 
     res.status(500).json({
-      message: 'Server error',
-    });
+      message: error.message || 'Server error',    });
   }
 };
 
@@ -341,8 +336,7 @@ const uploadProfilePicture = async (req, res) => {
     console.error('PROFILE PICTURE ERROR:', error);
 
     res.status(500).json({
-      message: 'Server error',
-    });
+      message: error.message || 'Server error',    });
   }
 };
 
